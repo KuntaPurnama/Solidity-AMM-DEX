@@ -2,7 +2,9 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "hardhat": "^2.19.4"
+    "hardhat": "^2.19.4",
+    "hardhat-deploy": "^0.12.4",
+    "prettier": "^3.3.3"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
@@ -16,6 +18,7 @@
     "@types/mocha": ">=9.1.0",
     "@types/sinon-chai": "^3.2.3",
     "chai": "^4.2.0",
+    "dotenv": "^16.4.5",
     "ethereum-waffle": "^4.0.10",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",

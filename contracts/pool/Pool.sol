@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -57,41 +57,41 @@ contract Pool is LiquidityToken, ReentrancyGuard{
     }
 
     function swap(address tokenIn, uint256 amountIn) external nonReentrant{
-        //Minimize gas by storing the storage variable into temporary variable
+        // Check if the token in is indeed the token we provide for swap
+        require(tokenIn == address(i_token0) || tokenIn == address(i_token1), "Invalid Token");
+
+        // Store the tokens in a temporary variable to minimize gas costs
         IERC20 token0 = i_token0;
         IERC20 token1 = i_token1;
 
-        //Check is the token in indeed the token we provide for swap
-        require(tokenIn == address(token0) || tokenIn == address(token1), "Invalid Token");
-
         uint8 fee = i_fee;
 
-        //get amount in that we will receive
-        uint256 amountInWithFee = (amountIn * (10000-fee))/1000;
-        
-        uint256 receive0 = s_reserve0;
-        uint256 receive1 = s_reserve1;
+        // Get amount in that we will receive
+        uint256 amountInWithFee = (amountIn * (10000 - fee)) / 1000;
 
-        //find out which token is going in and going out
-        (uint256 rIn, uint256 rOut, IERC20 tIn, IERC20 tOut) = tokenIn == address(token0) ? (receive0, receive1, token0, token1) : (receive1, receive0, token1, token0);
+        // Get the reserves directly
+        uint256 rIn = tokenIn == address(token0) ? s_reserve0 : s_reserve1;
+        uint256 rOut = tokenIn == address(token0) ? s_reserve1 : s_reserve0;
 
-        //Check if the target token balance is enough
+        // Check if the target token balance is enough
         require(rOut >= amountIn, "Insufficient Balance");
 
-        //get amount of token that sender will receive
-        uint256 amountOut = (amountInWithFee*rOut) / (rIn + amountInWithFee);
+        // Get amount of token that sender will receive
+        uint256 amountOut = (amountInWithFee * rOut) / (rIn + amountInWithFee);
 
-        bool successIn = tIn.transferFrom(msg.sender, address(this), amountIn);
-        require(successIn, "Transfer token in failed");
+        // Perform token transfer
+        require(IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), "Transfer token in failed");
 
-    
-        (uint updatedRes0, uint256 updatedRes1) = tokenIn == address(token0) ? (rIn + amountInWithFee, rOut - amountOut) : (rOut - amountOut, rIn + amountInWithFee);
-        _updateLiquidity(updatedRes0, updatedRes1);
+        // Update reserves
+        _updateLiquidity(
+            tokenIn == address(token0) ? (rIn + amountInWithFee) : (rOut - amountOut),
+            tokenIn == address(token0) ? (rOut - amountOut) : (rIn + amountInWithFee)
+        );
 
-        bool successOut = tOut.transfer(msg.sender, amountOut);
-        require(successOut, "Transfer token out failed");
+        // Transfer the output token to the sender
+        require(IERC20(token1).transfer(msg.sender, amountOut), "Transfer token out failed");
 
-        emit SwapSuccess(address(tIn), amountIn, address(tOut), amountOut);
+        emit SwapSuccess(tokenIn, amountIn, address(token1), amountOut);
     }
 
     function addLiquidity(uint256 amount0, uint256 amount1) external {
