@@ -83,4 +83,8 @@ contract PoolFactory {
 
         return pools;
     }    
+
+    function getNumberOfPool() external view returns(uint256){
+        return s_poolsList.length;
+    }
 }

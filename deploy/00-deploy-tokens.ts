@@ -22,8 +22,6 @@ const deployTokens: DeployFunction = async function ({
     const toWei = (num: number) => ethers.parseEther(num.toString());
     const isLocalNetwork: boolean = developmentChains.includes(network.name) ? true : false;
 
-    console.log("is local ", network.name);
-
     //BNB
     await runDeployment("BNB", [toWei(100000000)], isLocalNetwork, deploy, log, deployer);
 

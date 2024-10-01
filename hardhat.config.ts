@@ -21,6 +21,10 @@ const config: HardhatUserConfig = {
             url: "http://127.0.0.1:8545/",
             //accounts : thanks hardhat,
             chainId: 31337
+        },
+        hardhat: {
+            chainId: 31337,
+            allowUnlimitedContractSize: true
         }
     },
     namedAccounts: {
